@@ -54,21 +54,24 @@ function startDownload(callback, complete) {
 const WORKER_TO_RENDERER = "worker-to-renderer";
 const RENDERER_TO_WORKER = "renderer-to-worker";
 const refreshRate = 10;
-const speed = 1;
+const iterationCount = 50;
+const speed = 0.1;
 const height = 10;
 const sleep = async (time) => new Promise((r) => setTimeout(r, time));
 const replyLoop = async (event) => {
   let counter = -1;
   let iteration = 1;
   while (true) {
-    counter++;
-    if (counter === 2e3) {
-      counter = 0;
-      iteration++;
+    for (let i = 0; i < iterationCount; i++) {
+      counter++;
+      if (counter === 2e3) {
+        counter = 0;
+        iteration++;
+      }
+      const y = Math.sin(counter * iteration * speed) * height;
+      const data = { id: counter, position: new three.Vector3(0, y, 0) };
+      event.sender.send(WORKER_TO_RENDERER, data);
     }
-    const y = Math.sin(counter * iteration * speed) * height;
-    const data = { id: counter, position: new three.Vector3(0, y, 0) };
-    event.sender.send(WORKER_TO_RENDERER, data);
     await sleep(refreshRate);
   }
 };

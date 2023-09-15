@@ -9,16 +9,18 @@ const replyLoop = async (event: IpcMainEvent) => {
     let counter = -1;
     let iteration = 1;
     while(true) {
-        counter++;
-        if (counter === 2000) {
-            counter = 0;
-            iteration++;
+        for (let i = 0; i < c.iterationCount; i++) {
+            counter++;
+            if (counter === 2000) {
+                counter = 0;
+                iteration++;
+            }
+
+            const y = Math.sin(counter * iteration * c.speed) * c.height;
+
+            const data: TelemetryData = { id: counter, position: new Vector3(0, y, 0)}
+            event.sender.send(c.WORKER_TO_RENDERER, data);
         }
-
-        const y = Math.sin(counter * iteration * c.speed) * c.height;
-
-        const data: TelemetryData = { id: counter, position: new Vector3(0, y, 0)}
-        event.sender.send(c.WORKER_TO_RENDERER, data);
 
         await sleep(c.refreshRate);
     }

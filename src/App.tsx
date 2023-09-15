@@ -1,4 +1,4 @@
-import DroneScene from "./DroneScene";
+import DroneScene from "./Drones/DroneScene";
 import './App.scss';
 
 function App() {
