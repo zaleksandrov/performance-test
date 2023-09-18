@@ -1,5 +1,4 @@
 import { FC, useEffect, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
 import { Vector3, Mesh } from 'three';
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import * as c from "../constants";
@@ -23,19 +22,13 @@ const Drone: FC<DroneProps> = ({ id, position }) => {
     }, [])
 
     const handleMessage = (event: IpcRendererEvent, message: TelemetryData) => {
+        if (id === 1 && id === message.id) console.log("Delta Time: ", (new Date().getTime() - message.timestamp));
         if (message.id !== id) return;
         meshRef.current.position.set(
             meshRef.current.position.x,
             message.position.y,
             meshRef.current.position.z);
     };
-
-    // useFrame((s, delta) => {
-    //     const x = meshRef.current.position.x;
-    //     const y = meshRef.current.position.y + delta;
-    //     const z = meshRef.current.position.z;
-    //     meshRef.current.position.set(x, y, z);
-    // });
 
   return (
     <mesh ref={meshRef}>

@@ -17,8 +17,9 @@ const replyLoop = async (event: IpcMainEvent) => {
             }
 
             const y = Math.sin(counter * iteration * c.speed) * c.height;
+            let timestamp = new Date().getTime();
 
-            const data: TelemetryData = { id: counter, position: new Vector3(0, y, 0)}
+            const data: TelemetryData = { id: counter, position: new Vector3(0, y, 0), timestamp};
             event.sender.send(c.WORKER_TO_RENDERER, data);
         }
 

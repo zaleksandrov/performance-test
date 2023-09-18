@@ -55,7 +55,7 @@ const WORKER_TO_RENDERER = "worker-to-renderer";
 const RENDERER_TO_WORKER = "renderer-to-worker";
 const refreshRate = 10;
 const iterationCount = 50;
-const speed = 0.1;
+const speed = 1e-3;
 const height = 10;
 const sleep = async (time) => new Promise((r) => setTimeout(r, time));
 const replyLoop = async (event) => {
@@ -69,7 +69,8 @@ const replyLoop = async (event) => {
         iteration++;
       }
       const y = Math.sin(counter * iteration * speed) * height;
-      const data = { id: counter, position: new three.Vector3(0, y, 0) };
+      let timestamp = (/* @__PURE__ */ new Date()).getTime();
+      const data = { id: counter, position: new three.Vector3(0, y, 0), timestamp };
       event.sender.send(WORKER_TO_RENDERER, data);
     }
     await sleep(refreshRate);
