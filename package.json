@@ -13,6 +13,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "install": "cmake-js compile",
     "build": "tsc && vite build && electron-builder",
     "preview": "vite preview",
     "pree2e": "vite build --mode=test",
@@ -23,6 +24,7 @@
     "@react-three/fiber": "^8.14.1",
     "@types/three": "^0.156.0",
     "electron-updater": "^6.1.1",
+    "node-addon-api": "^7.0.0",
     "three": "^0.156.1",
     "ws": "^8.14.1"
   },
@@ -32,6 +34,7 @@
     "@types/react-dom": "^18.2.7",
     "@types/ws": "^8.5.5",
     "@vitejs/plugin-react": "^4.0.4",
+    "cmake-js": "^7.2.1",
     "electron": "^26.0.0",
     "electron-builder": "^24.6.3",
     "react": "^18.2.0",

@@ -4,6 +4,9 @@ import { join } from 'node:path'
 import { update } from './update'
 import "./service-worker";
 
+const {add} = require("../../build/Release/addon.node");
+console.log("C++ addon - Add Function 2 + 3: ",add(2, 3));
+
 // The built directory structure
 //
 // ├─┬ dist-electron
