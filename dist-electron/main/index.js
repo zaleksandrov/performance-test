@@ -59,11 +59,25 @@ const speed = 0.25;
 const height = 20;
 const DRONE_MAX_COUNT = 1e4;
 const GRID_SIZE_X = 100;
+const semiMajorAxis = 6378137;
+const ellipsoidFlattening = 1 / 298.257223563;
+const calculateAuxiliaryVariable = (latitude) => {
+  return semiMajorAxis / Math.sqrt(1 - ellipsoidFlattening * (2 - ellipsoidFlattening) * Math.pow(Math.sin(latitude), 2));
+};
+const convertToGPS = (position) => {
+  const latitude = Math.atan(position.z / Math.sqrt(position.x * position.x + position.y * position.y));
+  const longitude = Math.atan2(position.y, position.x);
+  const N = calculateAuxiliaryVariable(latitude);
+  const positionMag = position.length();
+  const altitude = positionMag / Math.cos(latitude) - N;
+  return { longitude, latitude, altitude };
+};
 const sleep = async (time) => new Promise((r) => setTimeout(r, time));
 const replyLoop = async (event) => {
   let counter = -1;
   let iteration = 1;
   const messages = [];
+  const position = new three.Vector3();
   while (true) {
     for (let i = 0; i < iterationCount; i++) {
       counter++;
@@ -74,7 +88,8 @@ const replyLoop = async (event) => {
       const y = Math.sin((counter + iteration) % GRID_SIZE_X * speed) * height;
       if (counter >= messages.length)
         messages.push(`${WORKER_TO_RENDERER}${counter}`);
-      const data = { id: counter, position: new three.Vector3(0, y, 0), timestamp: 0 };
+      position.set(0, y, 0);
+      const data = { id: counter, position: convertToGPS(position), timestamp: 0 };
       event.sender.send(messages[counter], data);
     }
     await sleep(refreshRate);

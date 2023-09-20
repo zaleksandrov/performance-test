@@ -3,6 +3,7 @@ import { Vector3, Mesh, BoxGeometry, MeshBasicMaterial } from 'three';
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import * as c from "../constants";
 import { TelemetryData } from '../types';
+import { convertToCartesian } from '@/util';
 
 type DroneProps = {
     id: number;
@@ -26,9 +27,12 @@ const Drone: FC<DroneProps> = ({ id, position }) => {
 
     const handleMessage = (event: IpcRendererEvent, message: TelemetryData) => {
         if (message.id !== id) return;
+
+        const posCartesian = convertToCartesian(message.position);
+
         meshRef.current.position.set(
             meshRef.current.position.x,
-            message.position.y,
+            posCartesian.y,
             meshRef.current.position.z);
     };
 

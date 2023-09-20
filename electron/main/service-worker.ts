@@ -1,6 +1,7 @@
 import { ipcMain, IpcMainEvent } from "electron";
 import * as c from "../../src/constants";
-import { TelemetryData } from "@/types";
+import { convertToGPS } from "../../src/util";
+import { TelemetryData } from "../../src/types";
 import { Vector3 } from "three";
 
 const sleep = async (time: number) => new Promise(r => setTimeout(r, time));
@@ -9,6 +10,7 @@ const replyLoop = async (event: IpcMainEvent) => {
     let counter = -1;
     let iteration = 1;
     const messages: string[] = [];
+    const position = new Vector3();
     
     while(true) {
         for (let i = 0; i < c.iterationCount; i++) {
@@ -19,10 +21,11 @@ const replyLoop = async (event: IpcMainEvent) => {
             }
             
             const y = Math.sin(((counter + iteration) % c.GRID_SIZE_X) * c.speed) * c.height;
-            //let timestamp = new Date().getTime();
             if (counter >= messages.length) messages.push(`${c.WORKER_TO_RENDERER}${counter}`);
 
-            const data: TelemetryData = { id: counter, position: new Vector3(0, y, 0), timestamp: 0};
+            position.set(0, y, 0);
+
+            const data: TelemetryData = { id: counter, position: convertToGPS(position), timestamp: 0};
             event.sender.send(messages[counter], data);
         }
 
