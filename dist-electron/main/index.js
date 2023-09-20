@@ -54,24 +54,28 @@ function startDownload(callback, complete) {
 const WORKER_TO_RENDERER = "worker-to-renderer";
 const RENDERER_TO_WORKER = "renderer-to-worker";
 const refreshRate = 10;
-const iterationCount = 50;
-const speed = 1e-3;
-const height = 10;
+const iterationCount = 1e3;
+const speed = 0.25;
+const height = 20;
+const DRONE_MAX_COUNT = 1e4;
+const GRID_SIZE_X = 100;
 const sleep = async (time) => new Promise((r) => setTimeout(r, time));
 const replyLoop = async (event) => {
   let counter = -1;
   let iteration = 1;
+  const messages = [];
   while (true) {
     for (let i = 0; i < iterationCount; i++) {
       counter++;
-      if (counter === 2e3) {
+      if (counter === DRONE_MAX_COUNT) {
         counter = 0;
         iteration++;
       }
-      const y = Math.sin(counter * iteration * speed) * height;
-      let timestamp = (/* @__PURE__ */ new Date()).getTime();
-      const data = { id: counter, position: new three.Vector3(0, y, 0), timestamp };
-      event.sender.send(WORKER_TO_RENDERER, data);
+      const y = Math.sin((counter + iteration) % GRID_SIZE_X * speed) * height;
+      if (counter >= messages.length)
+        messages.push(`${WORKER_TO_RENDERER}${counter}`);
+      const data = { id: counter, position: new three.Vector3(0, y, 0), timestamp: 0 };
+      event.sender.send(messages[counter], data);
     }
     await sleep(refreshRate);
   }
