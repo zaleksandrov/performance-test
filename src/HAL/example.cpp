@@ -1,4 +1,6 @@
 #include "example.h"
+#include "pi-worker.h"
+#include <iostream>
 using namespace std;
 int example::add(int x, int y)
 {
@@ -23,6 +25,8 @@ Napi::Number example::addWrapped(const Napi::CallbackInfo &info)
 Napi::Object example::Init(Napi::Env env, Napi::Object exports)
 {
     // export Napi function
+    cout << "Initializing module" << endl;
     exports.Set("add", Napi::Function::New(env, example::addWrapped));
+    // exports.Set("convertToCartesian", Napi::Function::New(env, example::addWrapped));
     return exports;
 }

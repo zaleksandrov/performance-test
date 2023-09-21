@@ -99,8 +99,6 @@ electron.ipcMain.on(RENDERER_TO_WORKER, (event, message) => {
   console.log("Received message in worker: ", message);
   replyLoop(event);
 });
-const { add } = require("../../build/Release/addon.node");
-console.log("C++ addon - Add Function 2 + 3: ", add(2, 3));
 process.env.DIST_ELECTRON = node_path.join(__dirname, "../");
 process.env.DIST = node_path.join(process.env.DIST_ELECTRON, "../dist");
 process.env.VITE_PUBLIC = process.env.VITE_DEV_SERVER_URL ? node_path.join(process.env.DIST_ELECTRON, "../public") : process.env.DIST;
