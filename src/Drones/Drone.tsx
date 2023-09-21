@@ -3,11 +3,7 @@ import { Vector3, Mesh, BoxGeometry, MeshBasicMaterial } from 'three';
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import * as c from "../constants";
 import { TelemetryData } from '../types';
-// import { convertToCartesian } from '@/util';
-// const {convertToCartesian} = require("../../build/Release/addon.node");
-const {add} = require("./addon.node");
-// const {add} = require('electron').remote.require('../../build/Release/addon.node');
-console.log("C++ addon - Add Function 2 + 3: ",add(2, 3));
+import { convertToCartesian } from '@/util';
 
 
 type DroneProps = {
@@ -31,14 +27,14 @@ const Drone: FC<DroneProps> = ({ id, position }) => {
     }, [])
 
     const handleMessage = async (event: IpcRendererEvent, message: TelemetryData) => {
-        // if (message.id !== id) return;
+        if (message.id !== id) return;
 
-        // const posCartesian = await convertToCartesian(message.position);
+        const posCartesian = convertToCartesian(message.position);
 
-        // meshRef.current.position.set(
-        //     meshRef.current.position.x,
-        //     posCartesian.y,
-        //     meshRef.current.position.z);
+        meshRef.current.position.set(
+            meshRef.current.position.x,
+            posCartesian.y,
+            meshRef.current.position.z);
     };
 
   return (
