@@ -27,6 +27,6 @@ Napi::Object example::Init(Napi::Env env, Napi::Object exports)
     // export Napi function
     cout << "Initializing module" << endl;
     exports.Set("add", Napi::Function::New(env, example::addWrapped));
-    // exports.Set("convertToCartesian", Napi::Function::New(env, example::addWrapped));
+    exports.Set("convertToCartesian", Napi::Function::New(env, example::CalculatePiAsync));
     return exports;
 }

@@ -3,7 +3,7 @@ const electron = require("electron");
 const node_os = require("node:os");
 const node_path = require("node:path");
 const electronUpdater = require("electron-updater");
-const three = require("three");
+const worker_threads = require("worker_threads");
 function update(win2) {
   electronUpdater.autoUpdater.autoDownload = false;
   electronUpdater.autoUpdater.disableWebInstaller = false;
@@ -51,54 +51,6 @@ function startDownload(callback, complete) {
   electronUpdater.autoUpdater.on("update-downloaded", complete);
   electronUpdater.autoUpdater.downloadUpdate();
 }
-const WORKER_TO_RENDERER = "worker-to-renderer";
-const RENDERER_TO_WORKER = "renderer-to-worker";
-const refreshRate = 10;
-const iterationCount = 1e3;
-const speed = 0.25;
-const height = 20;
-const DRONE_MAX_COUNT = 1e4;
-const GRID_SIZE_X = 100;
-const semiMajorAxis = 6378137;
-const ellipsoidFlattening = 1 / 298.257223563;
-const calculateAuxiliaryVariable = (latitude) => {
-  return semiMajorAxis / Math.sqrt(1 - ellipsoidFlattening * (2 - ellipsoidFlattening) * Math.pow(Math.sin(latitude), 2));
-};
-const convertToGPS = (position) => {
-  const latitude = Math.atan(position.z / Math.sqrt(position.x * position.x + position.y * position.y));
-  const longitude = Math.atan2(position.y, position.x);
-  const N = calculateAuxiliaryVariable(latitude);
-  const positionMag = position.length();
-  const altitude = positionMag / Math.cos(latitude) - N;
-  return { longitude, latitude, altitude };
-};
-const sleep = async (time) => new Promise((r) => setTimeout(r, time));
-const replyLoop = async (event) => {
-  let counter = -1;
-  let iteration = 1;
-  const messages = [];
-  const position = new three.Vector3();
-  while (true) {
-    for (let i = 0; i < iterationCount; i++) {
-      counter++;
-      if (counter === DRONE_MAX_COUNT) {
-        counter = 0;
-        iteration++;
-      }
-      const y = Math.sin((counter + iteration) % GRID_SIZE_X * speed) * height;
-      if (counter >= messages.length)
-        messages.push(`${WORKER_TO_RENDERER}${counter}`);
-      position.set(0, y, 0);
-      const data = { id: counter, position: convertToGPS(position), timestamp: 0 };
-      event.sender.send(messages[counter], data);
-    }
-    await sleep(refreshRate);
-  }
-};
-electron.ipcMain.on(RENDERER_TO_WORKER, (event, message) => {
-  console.log("Received message in worker: ", message);
-  replyLoop(event);
-});
 process.env.DIST_ELECTRON = node_path.join(__dirname, "../");
 process.env.DIST = node_path.join(process.env.DIST_ELECTRON, "../dist");
 process.env.VITE_PUBLIC = process.env.VITE_DEV_SERVER_URL ? node_path.join(process.env.DIST_ELECTRON, "../public") : process.env.DIST;
@@ -111,6 +63,7 @@ if (!electron.app.requestSingleInstanceLock()) {
   process.exit(0);
 }
 let win = null;
+let worker = null;
 const preload = node_path.join(__dirname, "../preload/index.js");
 const url = process.env.VITE_DEV_SERVER_URL;
 const indexHtml = node_path.join(process.env.DIST, "index.html");
@@ -143,10 +96,17 @@ async function createWindow() {
     return { action: "deny" };
   });
   update(win);
+  worker = new worker_threads.Worker("./electron/main/service-worker.js");
+  worker.on("message", (result) => {
+    win == null ? void 0 : win.webContents.send(result.message, result);
+  });
+  worker.postMessage({ command: "start" });
 }
 electron.app.whenReady().then(createWindow);
 electron.app.on("window-all-closed", () => {
   win = null;
+  worker == null ? void 0 : worker.terminate();
+  worker = null;
   if (process.platform !== "darwin")
     electron.app.quit();
 });
